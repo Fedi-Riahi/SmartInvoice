@@ -1,0 +1,6 @@
+@SmartInvoice.Gateway_HostAddress = http://localhost:5098
+
+GET {{SmartInvoice.Gateway_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

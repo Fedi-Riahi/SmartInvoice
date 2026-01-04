@@ -1,0 +1,6 @@
+@SmartInvoice.Customer_HostAddress = http://localhost:5044
+
+GET {{SmartInvoice.Customer_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
