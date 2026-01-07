@@ -26,6 +26,9 @@ namespace SmartInvoice.Invoice.Services
         Task<InvoiceSummaryResponse> GetSummaryAsync(DateTime? startDate = null, DateTime? endDate = null);
         Task<byte[]> GeneratePdfAsync(Guid invoiceId);
 
+        // Optional: PDF as Base64
+        Task<string> GeneratePdfBase64Async(Guid invoiceId);
+
         // Utility
         Task<string> GenerateInvoiceNumberAsync();
     }

@@ -1,12 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SmartInvoice.Invoice.Data;
 using SmartInvoice.Invoice.DTOs;
+using SmartInvoice.Invoice.Models; // Keep for enums
+using SmartInvoice.Invoice.Models.Pdf;
+using SmartInvoice.Invoice.Services.Pdf;
+using SmartInvoice.Shared.DTOs;
 // Use aliases to avoid namespace conflicts
 using InvoiceEntity = SmartInvoice.Invoice.Models.Invoice;
 using InvoiceItemEntity = SmartInvoice.Invoice.Models.InvoiceItem;
 using PaymentEntity = SmartInvoice.Invoice.Models.Payment;
-using SmartInvoice.Invoice.Models; // Keep for enums
-using SmartInvoice.Shared.DTOs;
 
 namespace SmartInvoice.Invoice.Services
 {
@@ -348,11 +350,79 @@ namespace SmartInvoice.Invoice.Services
 
         public async Task<byte[]> GeneratePdfAsync(Guid invoiceId)
         {
-            // TODO: Implement PDF generation using QuestPDF
-            // For now, return empty array asynchronously
-            await Task.CompletedTask;
-            return Array.Empty<byte>();
+            try
+            {
+                var invoice = await _context.Invoices
+                    .Include(i => i.Items)
+                    .Include(i => i.Payments)
+                    .FirstOrDefaultAsync(i => i.Id == invoiceId);
+
+                if (invoice == null)
+                    throw new KeyNotFoundException($"Invoice {invoiceId} not found");
+
+                // Create PDF model
+                var pdfModel = new InvoicePdfModel
+                {
+                    InvoiceNumber = invoice.InvoiceNumber,
+                    IssueDate = invoice.IssueDate,
+                    DueDate = invoice.DueDate,
+                    Status = invoice.Status.ToString(),
+
+                    Customer = new InvoicePdfModel.CustomerInfo
+                    {
+                        Name = invoice.CustomerName,
+                        Email = invoice.CustomerEmail,
+                        Company = invoice.CustomerName // Using name as company for now
+                    },
+
+                    Items = invoice.Items.Select(item => new InvoicePdfModel.InvoiceItemPdf
+                    {
+                        Description = item.Description,
+                        Quantity = item.Quantity,
+                        UnitType = item.UnitType ?? "unit",
+                        UnitPrice = item.UnitPrice,
+                        DiscountPercentage = item.DiscountPercentage,
+                        Total = item.Total
+                    }).ToList(),
+
+                    SubTotal = invoice.SubTotal,
+                    TaxAmount = invoice.TaxAmount,
+                    TotalAmount = invoice.TotalAmount,
+                    Balance = invoice.CalculateBalance(),
+                    Notes = invoice.Notes,
+
+                    Payments = invoice.Payments.Select(p => new InvoicePdfModel.PaymentInfo
+                    {
+                        PaymentDate = p.PaymentDate,
+                        Method = p.PaymentMethod,
+                        Amount = p.Amount,
+                        TransactionId = p.TransactionId,
+                        Status = p.Status.ToString()
+                    }).ToList()
+                };
+
+                // Generate PDF using the helper method
+                var pdfBytes = PdfGenerator.GenerateInvoicePdf(pdfModel);
+
+                _logger.LogInformation("PDF generated for invoice: {InvoiceNumber}", invoice.InvoiceNumber);
+
+                return pdfBytes;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating PDF for invoice {InvoiceId}", invoiceId);
+                throw;
+            }
         }
+
+
+        // Optional: Add a method to get PDF as Base64 string
+        public async Task<string> GeneratePdfBase64Async(Guid invoiceId)
+        {
+            var pdfBytes = await GeneratePdfAsync(invoiceId);
+            return Convert.ToBase64String(pdfBytes);
+        }
+
 
         // Helper methods
         private InvoiceResponse MapToInvoiceResponse(InvoiceEntity invoice)
