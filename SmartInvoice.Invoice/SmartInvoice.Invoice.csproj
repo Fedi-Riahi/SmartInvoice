@@ -7,9 +7,21 @@
 
   <ItemGroup>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.0" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\SmartInvoice.Shared\SmartInvoice.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Data\Configurations\" />
+    <Folder Include="Features\CreateInvoice\" />
+    <Folder Include="Features\GetInvoice\" />
+    <Folder Include="Features\UpdateInvoice\" />
   </ItemGroup>
 </Project>
