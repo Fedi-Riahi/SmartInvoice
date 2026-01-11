@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.0.31903.59
+# Visual Studio Version 18
+VisualStudioVersion = 18.3.11312.210 d18.3
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartInvoice.Core", "SmartInvoice.Core\SmartInvoice.Core.csproj", "{2AFFCD7E-E253-4D81-84CD-3FC13596591E}"
 EndProject
@@ -17,13 +17,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartInvoice.Customer", "Sm
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartInvoice.AI", "SmartInvoice.AI\SmartInvoice.AI.csproj", "{01AF5303-780B-41DD-BC6E-C0C4B49D2642}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartInvoice.Invoice.Tests", "SmartInvoice.Invoice.Tests\SmartInvoice.Invoice.Tests.csproj", "{F19A9FE9-4269-25A3-E58A-48F673F800C6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{2AFFCD7E-E253-4D81-84CD-3FC13596591E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -54,5 +53,12 @@ Global
 		{01AF5303-780B-41DD-BC6E-C0C4B49D2642}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{01AF5303-780B-41DD-BC6E-C0C4B49D2642}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{01AF5303-780B-41DD-BC6E-C0C4B49D2642}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F19A9FE9-4269-25A3-E58A-48F673F800C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F19A9FE9-4269-25A3-E58A-48F673F800C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F19A9FE9-4269-25A3-E58A-48F673F800C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F19A9FE9-4269-25A3-E58A-48F673F800C6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 EndGlobal
