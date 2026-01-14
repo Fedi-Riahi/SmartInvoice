@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SmartInvoice.Shared.DTOs;
+using SmartInvoice.Customer.Services;
+using SmartInvoice.Customer.Models;
 
 namespace SmartInvoice.Customer.Controllers
 {
@@ -7,6 +9,13 @@ namespace SmartInvoice.Customer.Controllers
     [Route("api/[controller]")]
     public class CustomerController : ControllerBase
     {
+        private readonly ICustomerService _customerService;
+
+        public CustomerController(ICustomerService customerService)
+        {
+            _customerService = customerService;
+        }
+
         [HttpGet("health")]
         public IActionResult HealthCheck()
         {
@@ -23,107 +32,155 @@ namespace SmartInvoice.Customer.Controllers
                     {
                         { "Port", "5003" },
                         { "Version", "1.0.0" },
-                        { "Features", "Customer CRUD, Contact Management" }
+                        { "Features", "Customer CRUD, Contact Management" },
+                        { "Storage", "In-Memory" }
                     }
                 }
             });
         }
 
         [HttpGet]
-        public IActionResult GetCustomers()
+        public async Task<IActionResult> GetCustomers()
         {
+            var customers = await _customerService.GetAllAsync();
+            var response = customers.Select(c => new CustomerResponse
+            {
+                Id = c.Id,
+                Name = c.Name,
+                Email = c.Email,
+                Phone = c.Phone,
+                Address = c.Address,
+                CreatedAt = c.CreatedAt,
+                UpdatedAt = c.UpdatedAt
+            }).ToList();
+
             return Ok(new ApiResponse<List<CustomerResponse>>
             {
                 Success = true,
-                Message = "Get customers endpoint - to be implemented",
-                Data = new List<CustomerResponse>
-                {
-                    new CustomerResponse
-                    {
-                        Id = Guid.NewGuid(),
-                        Name = "Tech Solutions Inc.",
-                        Email = "contact@techsolutions.com",
-                        Phone = "+1 (555) 123-4567",
-                        Address = "123 Tech Street, San Francisco, CA",
-                        CreatedAt = DateTime.UtcNow.AddMonths(-3)
-                    },
-                    new CustomerResponse
-                    {
-                        Id = Guid.NewGuid(),
-                        Name = "Global Retail Corp",
-                        Email = "info@globalretail.com",
-                        Phone = "+1 (555) 987-6543",
-                        Address = "456 Business Ave, New York, NY",
-                        CreatedAt = DateTime.UtcNow.AddMonths(-1)
-                    }
-                }
+                Message = "Customers retrieved successfully",
+                Data = response
             });
         }
 
         [HttpGet("{id}")]
-        public IActionResult GetCustomer(Guid id)
+        public async Task<IActionResult> GetCustomer(Guid id)
         {
+            var customer = await _customerService.GetByIdAsync(id);
+            if (customer == null)
+            {
+                return NotFound(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Customer not found",
+                    Errors = new List<string> { $"Customer with ID {id} not found" }
+                });
+            }
+
             return Ok(new ApiResponse<CustomerResponse>
             {
                 Success = true,
-                Message = $"Get customer {id} - to be implemented",
+                Message = "Customer retrieved successfully",
                 Data = new CustomerResponse
                 {
-                    Id = id,
-                    Name = "Sample Customer",
-                    Email = "customer@example.com",
-                    Phone = "+1 (555) 000-0000",
-                    Address = "789 Sample Street, City, State",
-                    CreatedAt = DateTime.UtcNow.AddMonths(-2)
+                    Id = customer.Id,
+                    Name = customer.Name,
+                    Email = customer.Email,
+                    Phone = customer.Phone,
+                    Address = customer.Address,
+                    CreatedAt = customer.CreatedAt,
+                    UpdatedAt = customer.UpdatedAt
                 }
             });
         }
 
         [HttpPost]
-        public IActionResult CreateCustomer([FromBody] CreateCustomerRequest request)
+        public async Task<IActionResult> CreateCustomer([FromBody] CreateCustomerRequest request)
         {
-            return Ok(new ApiResponse<CustomerResponse>
+            var newCustomer = new CustomerEntity
+            {
+                Name = request.Name,
+                Email = request.Email,
+                Phone = request.Phone,
+                Address = request.Address,
+                TaxId = request.TaxId
+            };
+
+            var created = await _customerService.CreateAsync(newCustomer);
+
+            return CreatedAtAction(nameof(GetCustomer), new { id = created.Id }, new ApiResponse<CustomerResponse>
             {
                 Success = true,
-                Message = "Customer created successfully (mock)",
+                Message = "Customer created successfully",
                 Data = new CustomerResponse
                 {
-                    Id = Guid.NewGuid(),
-                    Name = request.Name,
-                    Email = request.Email,
-                    Phone = request.Phone,
-                    Address = request.Address,
-                    CreatedAt = DateTime.UtcNow
+                    Id = created.Id,
+                    Name = created.Name,
+                    Email = created.Email,
+                    Phone = created.Phone,
+                    Address = created.Address,
+                    CreatedAt = created.CreatedAt,
+                    UpdatedAt = created.UpdatedAt
                 }
             });
         }
 
         [HttpPut("{id}")]
-        public IActionResult UpdateCustomer(Guid id, [FromBody] UpdateCustomerRequest request)
+        public async Task<IActionResult> UpdateCustomer(Guid id, [FromBody] UpdateCustomerRequest request)
         {
+            var updateModel = new CustomerEntity
+            {
+                Name = request.Name,
+                Email = request.Email,
+                Phone = request.Phone,
+                Address = request.Address
+            };
+
+            var updated = await _customerService.UpdateAsync(id, updateModel);
+            if (updated == null)
+            {
+                return NotFound(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Customer not found",
+                    Errors = new List<string> { $"Customer with ID {id} not found" }
+                });
+            }
+
             return Ok(new ApiResponse<CustomerResponse>
             {
                 Success = true,
-                Message = $"Customer {id} updated successfully (mock)",
+                Message = "Customer updated successfully",
                 Data = new CustomerResponse
                 {
-                    Id = id,
-                    Name = request.Name,
-                    Email = request.Email,
-                    Phone = request.Phone,
-                    Address = request.Address,
-                    CreatedAt = DateTime.UtcNow.AddMonths(-1)
+                    Id = updated.Id,
+                    Name = updated.Name,
+                    Email = updated.Email,
+                    Phone = updated.Phone,
+                    Address = updated.Address,
+                    CreatedAt = updated.CreatedAt,
+                    UpdatedAt = updated.UpdatedAt
                 }
             });
         }
 
         [HttpDelete("{id}")]
-        public IActionResult DeleteCustomer(Guid id)
+        public async Task<IActionResult> DeleteCustomer(Guid id)
         {
+            var deleted = await _customerService.DeleteAsync(id);
+            if (!deleted)
+            {
+                return NotFound(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Customer not found",
+                    Errors = new List<string> { $"Customer with ID {id} not found" }
+                });
+            }
+
             return Ok(new ApiResponse<object>
             {
                 Success = true,
-                Message = $"Customer {id} deleted successfully (mock)",
+                Message = "Customer deleted successfully",
                 Data = new { DeletedCustomerId = id }
             });
         }
@@ -134,25 +191,15 @@ namespace SmartInvoice.Customer.Controllers
             return Ok(new ApiResponse<CustomerInvoicesResponse>
             {
                 Success = true,
-                Message = $"Get invoices for customer {id} - to be implemented",
+                Message = $"Get invoices for customer {id} - Pending Invoice Service Integration",
                 Data = new CustomerInvoicesResponse
                 {
                     CustomerId = id,
-                    CustomerName = "Sample Customer",
-                    TotalInvoices = 5,
-                    TotalAmount = 12500.00m,
-                    OutstandingAmount = 2500.00m,
-                    Invoices = new List<CustomerInvoiceResponse>
-                    {
-                        new CustomerInvoiceResponse
-                        {
-                            InvoiceId = Guid.NewGuid(),
-                            InvoiceNumber = "INV-2024-001",
-                            Amount = 3000.00m,
-                            Status = "Paid",
-                            IssueDate = DateTime.UtcNow.AddDays(-45)
-                        }
-                    }
+                    CustomerName = "Integration Pending",
+                    TotalInvoices = 0,
+                    TotalAmount = 0m,
+                    OutstandingAmount = 0m,
+                    Invoices = new List<CustomerInvoiceResponse>()
                 }
             });
         }
